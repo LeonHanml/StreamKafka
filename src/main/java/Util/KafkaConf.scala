@@ -9,8 +9,8 @@ object KafkaConf {
 
   val topicsSet = Set("traffic")
   val brokers = "10.250.100.47:9093,10.250.100.53:9093,10.250.100.55:9093"
-  val groupId =  "activity9_pvuv"
-  val kafkaParams = Map[String, String](
+  val groupId =  "activity11_pvuv"
+  val kafkaParams:Map[String, String] = Map[String, String](
     "metadata.broker.list" -> brokers,
     "group.id" -> groupId,
     "serializer.class" -> "kafka.serializer.StringEncoder")
