@@ -137,8 +137,12 @@ class CommonPvuv11(dataMap: Map[String, String], jedis: Jedis, conn: Connection)
           val rcNumtt = jedis.scard(rcKeytt).toInt
           val unNumtt = jedis.scard(unKeytt).toInt
           //s"insert $tableName set pv=$pvNumtt, uv=$uvNumtt, rc=$rcNumtt, un=$unNumtt where min = '$date $time'"
-          val insertsql = s"INSERT INTO shopflow_tt_pvuv (date,ttcode,ttname,pv,uv,rc,un,min) values ($date,$ttCode,$ttName,$pvNumtt,$uvNumtt,$rcNumtt,$unNumtt,'$date $time')"
-          val updatesql = s"update $tableName set pv=$pvNumtt, uv=$uvNumtt, rc=$rcNumtt, un=$unNumtt where date = '$date' and ttcode = '$ttCode' "
+          val insertsql = s"INSERT INTO shopflow_tt_pvuv (date,ttcode,ttname,pv,uv,rc,un,min) values ('$date','$ttCode','$ttName',$pvNumtt,$uvNumtt,$rcNumtt,$unNumtt,'$date $time')"
+          val updatesql = s"update $tableName set pv=$pvNumtt, uv=$uvNumtt, rc=$rcNumtt, un=$unNumtt,min='$date $time' where date = '$date' and ttcode = '$ttCode' "
+//          println(insertsql)
+//          println(updatesql)
+
+
           val count = stmt.executeUpdate(updatesql)
           if (count <= 0) {
             stmt.executeUpdate(insertsql)

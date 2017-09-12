@@ -27,7 +27,7 @@ object LenovoComPvuv11 {
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.registerKryoClasses(Array(classOf[CommonPvuv11]))
 
-    val spark = SparkSession.builder().appName("Activity9_Lenovo.com").config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").config(conf).enableHiveSupport().getOrCreate()
+    val spark = SparkSession.builder().appName("Activity11_Lenovo.com").config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").config(conf).enableHiveSupport().getOrCreate()
     val sc = spark.sparkContext
     val ssc = new StreamingContext(sc, Seconds(10))
 

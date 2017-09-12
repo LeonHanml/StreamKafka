@@ -18,7 +18,7 @@ object MySqlPool {
         //加载驱动
         preGetConn()
         for (i <- 1 to connectionNum) {
-          val conn = DriverManager.getConnection("jdbc:mysql://10.250.100.23:3306/realtime", "storm", "hiWMAtvo8kYkxbjU")
+          val conn = DriverManager.getConnection("jdbc:mysql://10.250.100.23:3306/realtime?useUnicode=true&characterEncoding=UTF-8", "storm", "hiWMAtvo8kYkxbjU")
           pool.push(conn)
           conNum += 1
         }
