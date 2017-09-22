@@ -5,13 +5,21 @@ package Model
   */
 
 import java.sql.{Connection, Statement}
+import java.util.regex.Pattern
 
 import Util.tools
 import redis.clients.jedis.Jedis
 
-import scala.collection.mutable.Map
 import scala.collection.JavaConverters._
-class CommonPvuv11(dataMap: Map[String, String], jedis: Jedis, conn: Connection) extends Serializable{
+import scala.collection.mutable.Map
+
+/**
+  * 过滤条件修改为URL包含 activity
+  * @param dataMap
+  * @param jedis
+  * @param conn
+  */
+class CommonPvuv12(dataMap: Map[String, String], jedis: Jedis, conn: Connection) extends Serializable{
 
   //  def this(dataMap: Map[String, String]) {
   //    this(dataMap: Map[String, String],null)
@@ -26,6 +34,8 @@ class CommonPvuv11(dataMap: Map[String, String], jedis: Jedis, conn: Connection)
   var rcStr:String = if (dataMap.contains("RC")) dataMap("RC") else "RC-NULL"
   var unStr:String = if (dataMap.contains("UN")) dataMap("UN") else "UN-NULL"
   //  val conn = MySqlPool.getJdbcConn()
+
+  var cleStr :String =if (dataMap.contains("CLE")) dataMap("CLE") else "CLE-NULL"
 
   @transient val stmt:Statement = conn.createStatement()
 
@@ -68,7 +78,7 @@ class CommonPvuv11(dataMap: Map[String, String], jedis: Jedis, conn: Connection)
     try {
       var puStr = if (dataMap.contains("PU")) tools.urlDecoder(dataMap("PU")) else "PU-NULL"
       var ttStr = if (dataMap.contains("TT")) tools.urlDecoder(dataMap("TT")) else "TT-NULL"
-      if (puStr.contains("activity")) {
+//      if (puStr.contains("activity")) {
         var ttMap = Map(("联想商城周年庆，购爆款， GO狂欢，更有秒杀低至1折起，赶快来分享！", "tt1"), ("联想平板电脑TAB4/TAB4 Plus新品发布", "tt2"))
 
 //        给每一个活动名称一个编号
@@ -102,7 +112,7 @@ class CommonPvuv11(dataMap: Map[String, String], jedis: Jedis, conn: Connection)
           jedis.hset("ttMap",ttStr,s"tt$ttcodeNum")
 //          jedis.sadd(s"$date:ttset", ttStr)
         }
-      }
+//      }
     }catch {
       case ex: IllegalArgumentException =>
         var puStr = "PU-NULL"
@@ -159,6 +169,30 @@ class CommonPvuv11(dataMap: Map[String, String], jedis: Jedis, conn: Connection)
 
     }
   }
+
+  def setGoodStore(): Unit = {
+    val pattern = """.*\\|\\|show::goodsstore::[1-9]\d*::\d::wap\\|\\|.*""".r
+    if (cleStr.equals("CLE-NULL")) return
+    val strs = (pattern findAllIn cleStr).mkString
+    if (strs.length() < 5) {
+      return
+    }
+    val strArray = strs.split("::")
+    val pcode = strArray(2)
+    val state = strArray(3)
+    val port = strArray(4)
+
+//    val gsKey = s"goodstore:$date:$port:$pcode"
+    jedis.hset(s"goodstore:$date",s"$port:$pcode",state)
+
+
+  }
+
+  def getGoodStore(): Unit ={
+    jedis.hgetAll(s"goodstore:$date")
+  }
+
+
 }
 
 

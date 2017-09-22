@@ -61,11 +61,6 @@ object LenovoComPvuv10 {
       //      val previous = "previous"
       val conn = MySqlPool.getJdbcConn()
 
-      //      val pvuvTable = "shopflow_total_pvuv"
-      //      val pvuvIncreTable = "shopflow_total_incre_pvuv"
-
-//      val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm")
-
       partition.foreach { dataMap =>
         try {
           val stmt = conn.createStatement()
@@ -106,38 +101,6 @@ object LenovoComPvuv10 {
           }
 
 
-          //          val ttCode  = ttMap(ttStr)
-          //          val pvKey = s"PV:$date:$url"
-          //          val uvKey = s"UV:$date:$url"
-          //          val rcKey = s"RC:$date:$url"
-          //          val unKey = s"UN:$date:$url"
-
-          //          val ttKey = s"TT:$date:$ttCode"
-
-          //          jedis.hincrBy(pvKey, url, 1)
-          //          jedis.sadd(uvKey, url + cuc)
-          //          if (rcStr.equals("0")) {
-          //            jedis.sadd(rcKey, url + cuc)
-          //          }
-          //          if (!unStr.equals("")) {
-          //            jedis.sadd(unKey, url + unStr)
-          //          }
-          //          val pvKeytt = s"PV:$date:$ttCode"
-          //          val uvKeytt = s"UV:$date:$ttCode"
-          //          val rcKeytt = s"RC:$date:$ttCode"
-          //          val unKeytt = s"UN:$date:$ttCode"
-          //          if (puStr.contains("/activity/")) {
-          //
-          //            jedis.hincrBy(pvKeytt, url, 1)
-          //            jedis.sadd(uvKeytt, url + cuc)
-          //            if (rcStr.equals("0")) {
-          //              jedis.sadd(rcKeytt, url + cuc)
-          //            }
-          //            if (!unStr.equals("")) {
-          //              jedis.sadd(unKeytt, url + unStr)
-          //            }
-          //          }
-
 
           val minTSlogTimeMillions = tools.dateToStamp(s"$date $time").toLong
           val insertKey = "State_" + date
@@ -146,13 +109,6 @@ object LenovoComPvuv10 {
             val state = jedis.get(stateKey).toLong
 
             if (minTSlogTimeMillions > state) {
-
-              //                val pvNum = jedis.hget(pvKey, url).toInt
-              //                val uvNum = jedis.scard(uvKey).toInt
-              //                val rcNum = jedis.scard(rcKey).toInt
-              //                val unNum = jedis.scard(unKey).toInt
-              //                val sql = s"update $pvuvTable set pv=$pvNum, uv=$uvNum, rc=$rcNum, un=$unNum where min = '$date $time'"
-              //                stmt.execute(sql)
 
               for (ttCode <- ttMap.values) {
                 if (jedis.exists(s"PV:$date:$ttCode")) {

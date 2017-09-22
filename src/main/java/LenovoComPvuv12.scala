@@ -1,9 +1,7 @@
 
 //import com.redis.RedisClient
 
-import java.text.SimpleDateFormat
-
-import Model.CommonPvuv11
+import Model.{CommonPvuv11, CommonPvuv12}
 import Util.{KafkaConf, KafkaManager, MySqlPool, RedisClient, tools}
 import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
@@ -19,13 +17,13 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
   *
   * 单条存储数据
   */
-object LenovoComPvuv11 {
+object LenovoComPvuv12 {
 //@transent
   def main(args: Array[String]) {
     //.master("spark://10.250.100.17:7077")
     val conf =new  SparkConf()
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.registerKryoClasses(Array(classOf[CommonPvuv11]))
+    conf.registerKryoClasses(Array(classOf[CommonPvuv12]))
 
     val spark = SparkSession.builder().appName("Activity11_Lenovo.com").config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").config(conf).enableHiveSupport().getOrCreate()
     val sc = spark.sparkContext
@@ -47,11 +45,16 @@ object LenovoComPvuv11 {
 
   }
 
+  /**
+    * 过滤条件修改为URL包含 activity
+    * @param spark
+    * @param rdd
+    */
   def processRdd(spark: SparkSession, rdd: RDD[(String, String)]): Unit = {
 
     val data = rdd.map(_._2)
 
-    val result = data.filter(line => !line.toLowerCase().contains("spider")).map(line => tools.dataSplitFromLine(line))
+    val result = data.filter(line => !line.toLowerCase().contains("spider")&&line.contains("activity")).map(line => tools.dataSplitFromLine(line))
       .filter(dataMap => tools.isShopFlow(dataMap) && dataMap("WS").equals("10000001") && (!dataMap.contains("CLE")))
 
 
@@ -69,7 +72,7 @@ object LenovoComPvuv11 {
           val time = dataMap("time")
           val stmt = conn.createStatement()
 //          println("开始创建类CommonPvuv")
-          val cpvuv = new CommonPvuv11(dataMap ,jedis,conn )
+          val cpvuv = new CommonPvuv12(dataMap ,jedis,conn )
 //          cpvuv.setCommonPvuv()
           cpvuv.setActivityPvuv()
 

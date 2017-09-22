@@ -14,18 +14,19 @@ import scala.collection.mutable.Map
 
 /**
   * 从File中读取并计算数据
+  * 在配置文件 pvuv.properties中
+  * datefit表示要计算的日期，例如：201708205
+  * filePath 表示要读取日志的路径
+  * 数据会写入到redis中
   */
 object PvuvFromFile {
-  //  val log = Logger.getLogger(refitPvuv.getClass.getName)
-  //  log.setLevel(Level.ALL)
-  //  log.addAppender(new ConsoleAppender(new SimpleLayout(), "System.out"))
 
   def main(args: Array[String]) {
 
-    refit(PropUtil.getProperty("datefit"))
+    refit(PropUtil.getProperty("datefit"),PropUtil.getProperty("filePath"))
   }
 
-  def refit(date: String): Unit = {
+  def refit(date: String,filePath0:String): Unit = {
     val conf =new  SparkConf()
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.registerKryoClasses(Array(classOf[CommonPvuv]))
@@ -36,10 +37,15 @@ object PvuvFromFile {
     val year = date.substring(0, 4)
     val month = date.substring(4, 6)
     val day = date.substring(6, 8)
-    val filePath = s"hdfs://10.250.100.47:8020/flume/$year/$month/$day/*/traffic*"
-    val file = s"hdfs://10.250.100.47:8020/flume/2017/07/25/*/traffic*"
+    var filePath = filePath0
+    if(filePath.equals("")){
+      filePath = s"hdfs://10.250.100.47:8020/flume/$year/$month/$day/*/traffic*"
+    }
+
+//    val filePath = s"hdfs://10.250.100.47:8020/flume/$year/$month/$day/*/traffic*"
+//    val file = s"hdfs://10.250.100.47:8020/flume/2017/07/25/*/traffic*"
     //  val rdd = sc.textFile("hdfs://10.250.100.47:8020/flume/2017/08/01/11/traffic*")
-    val rdd: RDD[String] = sc.textFile(filePath)
+    val rdd: RDD[String] = sc.textFile(filePath,1)
 
     processRdd(rdd, date,sc)
 
@@ -48,9 +54,6 @@ object PvuvFromFile {
 
   def processRdd(rdd: RDD[(String)], dateRefit: String,sc:SparkContext): Unit = {
 
-//    val resultUvMap: Map[String, Int] = Map()
-//    val resultRcMap: Map[String, Int] = Map()
-//    val resultUnMap: Map[String, Int] = Map()
     val data = rdd
     //    log.warn("开始计算result")
 
@@ -72,7 +75,8 @@ object PvuvFromFile {
       var rcStr = if (dataMap.contains("RC")) dataMap("RC") else "RC-NULL"
       var unStr = if (dataMap.contains("UN")) dataMap("UN") else "UN-NULL"
 
-      val key = s"$date|$time|$url"
+//      val key = s"$date|$time|$url"
+      val key = s"$time"
       (key, 1)
     }.reduceByKey(_ + _)
 
@@ -82,15 +86,21 @@ object PvuvFromFile {
     println(s"redisddb:$redisdb")
     jedis.select(redisdb)
     var incre = 0
+
+    /**
+      * Collection 中都自带有排序函数
+      */
     val sortArray = pv.collect().sortBy(arr=>arr._1).foreach {
 
       arr=>
-        println(arr)
+
         incre+=arr._2
-        jedis.hset("pv","--"+arr._1,arr._2.toString )
-        jedis.hset("pv_order","--"+arr._1,incre.toString )
+        println(arr._1+"--"+incre)
+        jedis.lpush("pv",arr._1 + "--" + incre)
     }
-    val sortedKeySet = resultPvMap.keySet.toList.sortBy(x=>x)
+
+
+
 
 
 

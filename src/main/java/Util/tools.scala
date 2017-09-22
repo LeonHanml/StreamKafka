@@ -1,7 +1,9 @@
 package Util
 
 import java.text.SimpleDateFormat
+
 import scala.collection.mutable.Map
+import scala.util.matching.Regex
 object tools extends Serializable {
   def dataSplit(urlString: String): Map[String, String] = {
     val dataMap: Map[String, String] = Map()
@@ -117,6 +119,21 @@ object tools extends Serializable {
     }
     activity
 
+  }
+
+  def exitShopStore(str:String): Boolean ={
+    val pattern  = regexOfgoodstore()
+
+    val strs = (pattern findAllIn str).mkString
+    if (!strs .equals("")){
+      return true
+    }else{
+      return false
+    }
+  }
+  def regexOfgoodstore(): Regex ={
+    val pattern = """\|\|show::goodsstore::[1-9]\d*::\d::[a-z]+\|\|""".r
+    return pattern
   }
 
 
